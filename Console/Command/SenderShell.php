@@ -43,6 +43,8 @@ class SenderShell extends AppShell {
 	public function main() {
 		Configure::write('App.baseUrl', '/');
 		$emailQueue = ClassRegistry::init('EmailQueue.EmailQueue');
+		
+		Router::setRequestInfo(new CakeRequest('/', false));
 
 		$emails = $emailQueue->getBatch($this->params['limit']);
 		foreach ($emails as $e) {
@@ -56,9 +58,14 @@ class SenderShell extends AppShell {
 				if (!empty($e['EmailQueue']['from_email']) && !empty($e['EmailQueue']['from_name'])) {
 					$email->from($e['EmailQueue']['from_email'], $e['EmailQueue']['from_name']);
 				}
-
+				
+				if (isset($e['EmailQueue']['template_vars']['language'])) {
+					Configure::write('Config.language', $e['EmailQueue']['template_vars']['language']);
+					Router::getRequest()->params['language'] = $e['EmailQueue']['template_vars']['language'];
+				}
+				
 				$sent = $email
-					->to($e['EmailQueue']['to'])
+					->to($e['EmailQueue']['to'], $e['EmailQueue']['to_name'])
 					->subject($e['EmailQueue']['subject'])
 					->template($template, $layout)
 					->emailFormat($e['EmailQueue']['format'])

@@ -50,14 +50,19 @@ class EmailQueue extends AppModel {
 			'template_vars' => $data,
 			'config' => 'default'
 		);
-
+		
 		$email = $options + $defaults;
 		if (!is_array($to)) {
 			$to = array($to);
 		}
-
-		foreach ($to as $t) {
-			$email['to'] = $t;
+		
+		foreach ($to as $toEmail=>$toName) {
+		    if (is_numeric($toEmail)) {
+		        $toEmail = $toName;
+		        $toName  = null;
+		    }
+			$email['to'] = $toEmail;
+			$email['to_name'] = $toName;
 			$this->create();
 			$this->save($email);
 		}
@@ -146,7 +151,10 @@ class EmailQueue extends AppModel {
 		if (isset($this->data[$this->alias]['template_vars'])) {
 			$this->data[$this->alias]['template_vars'] = json_encode($this->data[$this->alias]['template_vars']);
 		}
-
+		if (isset($this->data[$this->alias]['config'])) {
+			$this->data[$this->alias]['config'] = json_encode($this->data[$this->alias]['config']);
+		}
+		
 		return parent::beforeSave($options);
 	}
 
@@ -167,6 +175,7 @@ class EmailQueue extends AppModel {
 				return $results;
 			}
 			$r[$this->alias]['template_vars'] = json_decode($r[$this->alias]['template_vars'], true);
+			$r[$this->alias]['config'] = json_decode($r[$this->alias]['config'], true);
 		}
 
 		return $results;
