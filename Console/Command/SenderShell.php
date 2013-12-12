@@ -40,11 +40,14 @@ class SenderShell extends AppShell {
  *
  * @access public
  */
-	public function main() {
-		Configure::write('App.baseUrl', '/');
+	public function main()
+	{
+	    Configure::write('App.baseUrl', '/');
+	    
+		/* @var $emailQueue EmailQueue */
 		$emailQueue = ClassRegistry::init('EmailQueue.EmailQueue');
 		
-		Router::setRequestInfo(new CakeRequest('/', false));
+		Router::setRequestInfo(new CakeRequest(Configure::read('App.baseUrl'), false));
 
 		$emails = $emailQueue->getBatch($this->params['limit']);
 		foreach ($emails as $e) {
@@ -54,7 +57,7 @@ class SenderShell extends AppShell {
 
 			try {
 				$email = $this->_newEmail($configName);
-
+				
 				if (!empty($e['EmailQueue']['from_email']) && !empty($e['EmailQueue']['from_name'])) {
 					$email->from($e['EmailQueue']['from_email'], $e['EmailQueue']['from_name']);
 				}
