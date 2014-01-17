@@ -14,7 +14,7 @@ class EmailQueue extends AppModel {
  * @var string $name
  * @access public
  */
-	public $name = 'EmailQueue';
+    public $name = 'EmailQueue';
 
 /**
  * Database table used
@@ -22,7 +22,7 @@ class EmailQueue extends AppModel {
  * @var string
  * @access public
  */
-	public $useTable = 'email_queue';
+    public $useTable = 'email_queue';
 
 /**
  * Stores a new email message in the queue
@@ -40,33 +40,33 @@ class EmailQueue extends AppModel {
  *
  * @return void
  */
-	public function enqueue($to, array $data, $options = array()) {
-		$defaults = array(
-			'subject' => '',
-			'send_at' => gmdate('Y-m-d H:i:s'),
-			'template' => 'default',
-			'layout' => 'default',
-			'format' => 'both',
-			'template_vars' => $data,
-			'config' => 'default'
-		);
-		
-		$email = $options + $defaults;
-		if (!is_array($to)) {
-			$to = array($to);
-		}
-		
-		foreach ($to as $toEmail=>$toName) {
-		    if (is_numeric($toEmail)) {
-		        $toEmail = $toName;
-		        $toName  = null;
-		    }
-			$email['to'] = $toEmail;
-			$email['to_name'] = $toName;
-			$this->create();
-			$this->save($email);
-		}
-	}
+    public function enqueue($to, array $data, $options = array()) {
+        $defaults = array(
+            'subject' => '',
+            'send_at' => gmdate('Y-m-d H:i:s'),
+            'template' => 'default',
+            'layout' => 'default',
+            'format' => 'both',
+            'template_vars' => $data,
+            'config' => 'default'
+        );
+
+        $email = $options + $defaults;
+        if (!is_array($to)) {
+            $to = array($to);
+        }
+
+        foreach ($to as $toEmail=>$toName) {
+            if (is_numeric($toEmail)) {
+                $toEmail = $toName;
+                $toName  = null;
+            }
+            $email['to'] = $toEmail;
+            $email['to_name'] = $toName;
+            $this->create();
+            $this->save($email);
+        }
+    }
 
 /**
  * Returns a list of queued emails that needs to be sent
@@ -75,46 +75,46 @@ class EmailQueue extends AppModel {
  * @return array list of unsent emails
  * @access public
  */
-	public function getBatch($size = 10) {
-		$this->getDataSource()->begin();
+    public function getBatch($size = 10) {
+        $this->getDataSource()->begin();
 
-		$emails = $this->find('all', array(
-			'limit' => $size,
-			'conditions' => array(
-				'EmailQueue.sent' => false,
-				'EmailQueue.send_tries <=' => 3,
-				'EmailQueue.send_at <=' => gmdate('Y-m-d H:i:s'),
-				'EmailQueue.locked' => false
-			),
-			'order' => array('EmailQueue.created' => 'ASC')
-		));
+        $emails = $this->find('all', array(
+            'limit' => $size,
+            'conditions' => array(
+                'EmailQueue.sent' => false,
+                'EmailQueue.send_tries <=' => 3,
+                'EmailQueue.send_at <=' => gmdate('Y-m-d H:i:s'),
+                'EmailQueue.locked' => false
+            ),
+            'order' => array('EmailQueue.created' => 'ASC')
+        ));
 
-		if (!empty($emails)) {
-			$ids =  Set::extract('{n}.EmailQueue.id', $emails);
-			$this->updateAll(array('locked' => true), array('EmailQueue.id' => $ids));
-		}
+        if (!empty($emails)) {
+            $ids =  Set::extract('{n}.EmailQueue.id', $emails);
+            $this->updateAll(array('locked' => true), array('EmailQueue.id' => $ids));
+        }
 
-		$this->getDataSource()->commit();
-		return $emails;
-	}
+        $this->getDataSource()->commit();
+        return $emails;
+    }
 
 /**
  * Releases locks for all emails in $ids
  *
  * @return void
  **/
-	public function releaseLocks($ids) {
-		$this->updateAll(array('locked' => false), array('EmailQueue.id' => $ids));
-	}
+    public function releaseLocks($ids) {
+        $this->updateAll(array('locked' => false), array('EmailQueue.id' => $ids));
+    }
 
 /**
  * Releases locks for all emails in queue, useful for recovering from crashes
  *
  * @return void
  **/
-	public function clearLocks() {
-		$this->updateAll(array('locked' => false));
-	}
+    public function clearLocks() {
+        $this->updateAll(array('locked' => false));
+    }
 
 /**
  * Marks an email from the queue as sent
@@ -123,10 +123,10 @@ class EmailQueue extends AppModel {
  * @return boolean
  * @access public
  */
-	public function success($id) {
-		$this->id = $id;
-		return $this->saveField('sent', true);
-	}
+    public function success($id) {
+        $this->id = $id;
+        return $this->saveField('sent', true);
+    }
 
 /**
  * Marks an email from the queue as failed, and increments the number of tries
@@ -135,11 +135,11 @@ class EmailQueue extends AppModel {
  * @return boolean
  * @access public
  */
-	public function fail($id) {
-		$this->id = $id;
-		$tries = $this->field('send_tries');
-		return $this->saveField('send_tries', $tries + 1);
-	}
+    public function fail($id) {
+        $this->id = $id;
+        $tries = $this->field('send_tries');
+        return $this->saveField('send_tries', $tries + 1);
+    }
 
 /**
  * Converts array data for template vars into a json serialized string
@@ -147,16 +147,16 @@ class EmailQueue extends AppModel {
  * @param array $options
  * @return boolean
  **/
-	public function beforeSave($options = array()) {
-		if (isset($this->data[$this->alias]['template_vars'])) {
-			$this->data[$this->alias]['template_vars'] = json_encode($this->data[$this->alias]['template_vars']);
-		}
-		if (isset($this->data[$this->alias]['config'])) {
-			$this->data[$this->alias]['config'] = json_encode($this->data[$this->alias]['config']);
-		}
-		
-		return parent::beforeSave($options);
-	}
+    public function beforeSave($options = array()) {
+        if (isset($this->data[$this->alias]['template_vars'])) {
+            $this->data[$this->alias]['template_vars'] = json_encode($this->data[$this->alias]['template_vars']);
+        }
+        if (isset($this->data[$this->alias]['config'])) {
+            $this->data[$this->alias]['config'] = json_encode($this->data[$this->alias]['config']);
+        }
+
+        return parent::beforeSave($options);
+    }
 
 /**
  * Converts template_vars back into a php array
@@ -165,20 +165,23 @@ class EmailQueue extends AppModel {
  * @param boolean $primary
  * @return array
  **/
-	public function afterFind($results, $primary = false) {
-		if (!$primary) {
-			return parent::afterFind($results, $primary);
-		}
+    public function afterFind($results, $primary = false) {
+        if (!$primary) {
+            return parent::afterFind($results, $primary);
+        }
 
-		foreach ($results as &$r) {
-			if (!isset($r[$this->alias]['template_vars'])) {
-				return $results;
-			}
-			$r[$this->alias]['template_vars'] = json_decode($r[$this->alias]['template_vars'], true);
-			$r[$this->alias]['config'] = json_decode($r[$this->alias]['config'], true);
-		}
+        foreach ($results as &$r) {
+            if (!isset($r[$this->alias]['template_vars'])) {
+                return $results;
+            }
+            $r[$this->alias]['template_vars'] = json_decode($r[$this->alias]['template_vars'], true);
 
-		return $results;
-	}
+            if ($config = json_decode($r[$this->alias]['config'], true)) {
+                $r[$this->alias]['config'] = $config;
+            }
+        }
+
+        return $results;
+    }
 
 }
