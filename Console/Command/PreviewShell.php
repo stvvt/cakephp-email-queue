@@ -49,12 +49,10 @@ class PreviewShell extends AppShell {
             ->emailFormat($e['EmailQueue']['format'])
             ->viewVars($e['EmailQueue']['template_vars']);
 
-        if (!isset($e['EmailQueue']['template_vars']['language'])) {
-            $e['EmailQueue']['template_vars']['language'] = 'bul';
+        if (isset($e['EmailQueue']['template_vars']['language'])) {
+            Configure::write('Config.language', $e['EmailQueue']['template_vars']['language']);
+            Router::getRequest()->params['language'] = $e['EmailQueue']['template_vars']['language'];
         }
-
-        Configure::write('Config.language', $e['EmailQueue']['template_vars']['language']);
-        Router::getRequest()->params['language'] = $e['EmailQueue']['template_vars']['language'];
 
         $return = $email->send();
 
