@@ -25,11 +25,31 @@ class EmailQueuesController extends AppController {
  * @return void
  */
 	public function view($id = null) {
-		if (!$this->EmailQueue->exists($id)) {
-			throw new NotFoundException(__('Invalid email queue'));
-		}
-		$options = array('conditions' => array('EmailQueue.' . $this->EmailQueue->primaryKey => $id));
-		$this->set('emailQueue', $this->EmailQueue->find('first', $options));
+
+		$data = $this->EmailQueue->read(null,$id);
+
+
+		$configName = $data['EmailQueue']['config'];
+        $template = $data['EmailQueue']['template'];
+        $layout = $data['EmailQueue']['layout'];
+
+        $email = new CakeEmail($configName);
+
+        $email->transport('Debug')
+            ->to($data['EmailQueue']['to'])
+            ->subject($data['EmailQueue']['subject'])
+            ->template($template, $layout)
+            ->emailFormat($data['EmailQueue']['format'])
+            ->viewVars($data['EmailQueue']['template_vars']);
+
+        if (isset($data['EmailQueue']['template_vars']['language'])) {
+            Configure::write('Config.language', $data['EmailQueue']['template_vars']['language']);
+            Router::getRequest()->params['language'] = $data['EmailQueue']['template_vars']['language'];
+        }
+
+        $email_text = $email->send();
+        $this->set(compact('email_text'));
+        $this->set(compact('data'));
 	}
 
 /**
