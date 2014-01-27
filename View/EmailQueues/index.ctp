@@ -24,11 +24,8 @@
         <td><?php echo h($emailQueue['EmailQueue']['to_name']) .'<br>'. h($emailQueue['EmailQueue']['to']); ?>&nbsp;</td>
         <td><?php echo h($emailQueue['EmailQueue']['subject']); ?>&nbsp;</td>
         <td><?php echo h($emailQueue['EmailQueue']['template']); ?>&nbsp;</td>
-
         <td><?php echo h($emailQueue['EmailQueue']['format']); ?>&nbsp;</td>
         <td><?php echo h($emailQueue['EmailQueue']['sent']).' / '.h($emailQueue['EmailQueue']['locked']).' / '.h($emailQueue['EmailQueue']['send_tries']); ?>&nbsp;</td>
-        <td><?php //echo h($emailQueue['EmailQueue']['locked']); ?>&nbsp;</td>
-        <td><?php //Fecho h($emailQueue['EmailQueue']['send_tries']); ?>&nbsp;</td>
         <td><?php echo $this->Time->niceShort(h($emailQueue['EmailQueue']['send_at'])); ?>&nbsp;</td>
         <td><?php echo $this->Time->niceShort(h($emailQueue['EmailQueue']['created'])); ?>&nbsp;</td>
         <td><?php echo $this->Time->niceShort(h($emailQueue['EmailQueue']['modified'])); ?>&nbsp;</td>
