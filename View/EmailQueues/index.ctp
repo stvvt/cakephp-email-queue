@@ -4,15 +4,10 @@
     <tr>
             <th><?php echo $this->Paginator->sort('id'); ?></th>
             <th><?php echo $this->Paginator->sort('to'); ?></th>
-
             <th><?php echo $this->Paginator->sort('subject'); ?></th>
-
             <th><?php echo $this->Paginator->sort('template'); ?></th>
-
             <th><?php echo $this->Paginator->sort('format'); ?></th>
             <th><?php echo $this->Paginator->sort('sent/locked/ send_tries'); ?></th>
-            <th><?php //echo $this->Paginator->sort('locked'); ?></th>
-            <th><?php //echo $this->Paginator->sort('send_tries'); ?></th>
             <th><?php echo $this->Paginator->sort('send_at'); ?></th>
             <th><?php echo $this->Paginator->sort('created'); ?></th>
             <th><?php echo $this->Paginator->sort('modified'); ?></th>
