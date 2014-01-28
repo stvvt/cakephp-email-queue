@@ -37,4 +37,4 @@
 
 <h3><?php echo __('Headers'); ?></h3>
 
-<p> <pre> <?php echo $email_text['headers'];?> </pre></p>
+<pre><?php echo $email_text['headers'];?></pre>

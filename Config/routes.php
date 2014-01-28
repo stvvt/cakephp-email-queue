@@ -1,5 +1,5 @@
 <?php
 
-connectPluginShortRoutes('EmailQueue');
+// connectPluginShortRoutes('EmailQueue');
 
-Router::connect('/emailqueue', array('plugin'=>'EmailQueue', 'controller' => 'EmailQueues', 'action' => 'index'));
+Router::connect('/emails', array('plugin'=>'email_queue', 'controller' => 'email_queue', 'action' => 'index'));
