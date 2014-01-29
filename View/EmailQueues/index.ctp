@@ -49,10 +49,20 @@
                 <?php echo h($r['EmailQueue']['subject']); ?><br/>
                 (<?php echo h($r['EmailQueue']['template']); ?>, <?php echo h($r['EmailQueue']['format']); ?>)
             </td>
-            <td nowrap="nowrap"><?php echo $this->Time->niceShort(h($r['EmailQueue']['created'])); ?>&nbsp;</td>
+            <td nowrap="nowrap">
+                <?php
+                    echo $this->Time->niceShort(h($r['EmailQueue']['created']), new DateTimeZone(date_default_timezone_get()));
+                ?>
+            </td>
             <td nowrap="nowrap">
                 <?php if ($r['EmailQueue']['sent']) : ?>
-                    <?php echo $this->Time->niceShort($r['EmailQueue']['send_at'], 4); ?>
+                    <?php
+                        // $r['EmailQueue']['send_at'] is GMT (UTC) date. We need to convert it to default timezone
+                        $_tzSentAt = new DateTime($r['EmailQueue']['send_at'], new DateTimeZone('UTC'));
+                        $_tzSentAt->setTimezone(new DateTimeZone(date_default_timezone_get()));
+
+                        echo $this->Time->niceShort($_tzSentAt);
+                    ?>
                 <?php endif; ?>
             </td>
         </tr>
