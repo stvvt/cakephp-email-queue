@@ -52,7 +52,7 @@
             <td nowrap="nowrap"><?php echo $this->Time->niceShort(h($r['EmailQueue']['created'])); ?>&nbsp;</td>
             <td nowrap="nowrap">
                 <?php if ($r['EmailQueue']['sent']) : ?>
-                    <?php echo $this->Time->niceShort($r['EmailQueue']['send_at']); ?>
+                    <?php echo $this->Time->niceShort($r['EmailQueue']['send_at'], 4); ?>
                 <?php endif; ?>
             </td>
         </tr>
