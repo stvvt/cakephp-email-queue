@@ -8,6 +8,26 @@ App::uses('AppModel', 'Model');
  */
 class EmailQueue extends AppModel {
 
+
+    const EMAIL_STATUS_SENT = 'sent';
+    const EMAIL_STATUS_SENDING = 'sending';
+    const EMAIL_STATUS_PENDING = 'pending';
+    const EMAIL_STATUS_ERROR = 'error';
+
+    const EMAIL_TEMPLATE_AUCTION_BIDDER_AUCTION_FINISHED = 'Auction.bidder_auction_finished';
+    const EMAIL_TEMPLATE_AUCTION_LOSER_WINNER_SELLECTED = 'Auction.loser_winner_sellected';
+    const EMAIL_TEMPLATE_AUCTION_OWNER_AUCTION_FINISHED = 'Auction.owner_auction_finished';
+    const EMAIL_TEMPLATE_AUCTION_RELEVANT_ACTIVATED = 'Auction.relevant_activated';
+    const EMAIL_TEMPLATE_AUCTION_WINNER_WINNER_SELLECTED = 'Auction.winner_winner_sellected';
+
+    const EMAIL_TEMPLATE_CRM_APPROVED = 'Crm.approved';
+    const EMAIL_TEMPLATE_CRM_COMPANY_CONFIRMED = 'Crm.company_confirmed';
+    const EMAIL_TEMPLATE_CRM_FORGOT_PASSWORD = 'Crm.forgot_password';
+    const EMAIL_TEMPLATE_CRM_JOIN_REQUEST = 'Crm.join_request';
+
+    const EMAIL_TEMPLATE_CLIENT_WELLCOME = 'Client.welcome';
+    const EMAIL_TEMPLATE_CLIENT_INVITATION = 'Client.invitation';
+
 /**
  * Name
  *
@@ -23,6 +43,29 @@ class EmailQueue extends AppModel {
  * @access public
  */
     public $useTable = 'email_queue';
+
+    public function resetEmailStats($id)
+    {
+        $newData = $this->find('first', array(
+            'conditions' => array('EmailQueue.id' => $id),
+            'fields' => array('EmailQueue.id', 'EmailQueue.sent','EmailQueue.send_tries','EmailQueue.locked'),
+            'recursive' => -1,
+            )
+        );
+
+        if( !empty($newData) )
+        {
+            $newData['EmailQueue']['sent'] = false;
+            $newData['EmailQueue']['locked'] = false;
+            $newData['EmailQueue']['send_tries'] = 0;
+
+            if( $this->save($newData) === false )
+                return false;
+
+            return true;
+        }
+        return false;
+    }
 
 /**
  * Stores a new email message in the queue

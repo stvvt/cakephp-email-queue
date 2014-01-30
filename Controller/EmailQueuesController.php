@@ -1,5 +1,6 @@
 <?php
 App::uses('EmailQueueAppController', 'EmailQueue.Controller');
+App::uses('EmailQueue','EmailQueue.Model');
 
 /**
  * EmailQueues Controller
@@ -12,6 +13,16 @@ class EmailQueuesController extends EmailQueueAppController
         //'DebugKit.HtmlToolbar',
     );
 
+    public $components = array(
+         'Filter' => array(
+            'fieldMap' => array(
+                'st'=>'EmailQueue.status',
+                'to'=>'EmailQueue.to',
+                'te'=>'EmailQueue.template',
+            )
+        )
+    );
+
     /**
      * index method
      *
@@ -19,8 +30,65 @@ class EmailQueuesController extends EmailQueueAppController
      */
     public function index()
     {
-        $this->EmailQueue->recursive = 0;
-        $this->set('emailQueues', $this->paginate());
+        $filter = $this->Filter->get();
+
+        $conditions = array();
+
+        if (!empty($filter['EmailQueue']['status']) ) {
+
+            if($filter['EmailQueue']['status'] == EmailQueue::EMAIL_STATUS_SENT){
+                $conditions['EmailQueue.sent']=true;
+            }
+            elseif ($filter['EmailQueue']['status'] == EmailQueue::EMAIL_STATUS_SENDING) {
+                $conditions['EmailQueue.locked']=true;
+            }
+            elseif($filter['EmailQueue']['status'] == EmailQueue::EMAIL_STATUS_ERROR) {
+                $conditions['EmailQueue.send_tries >=']='4';
+            }
+            elseif ($filter['EmailQueue']['status'] == EmailQueue::EMAIL_STATUS_PENDING){
+                $conditions['EmailQueue.sent'] = false;
+                $conditions['EmailQueue.locked'] = false;
+                $conditions['EmailQueue.send_tries <'] = '4';
+            }
+        }
+
+        if (!empty($filter['EmailQueue']['to'])) {
+            $conditions['EmailQueue.to LIKE'] = '%'.$filter['EmailQueue']['to'].'%';
+        }
+
+        if (!empty($filter['EmailQueue']['template'])) {
+            $conditions['EmailQueue.template'] = $filter['EmailQueue']['template'];
+        }
+
+        $this->request->data = $filter;
+
+        $this->EmailQueue->recursive = -1;
+        $this->set('emailQueues', $this->paginate($conditions));
+    }
+
+    public function filter()
+    {
+        if (!empty($this->request->data)) {
+            $sfilter = $this->Filter->flatten();
+            $this->request->params['named']['page'] = false;
+            $this->redirect(array('action'=>'index') + Hash::filter($sfilter + $this->request->params['named']));
+        } else {
+            $this->request->data = $this->Filter->get();
+        }
+    }
+
+    public function resetEmailStats($id)
+    {
+        if($this->EmailQueue->resetEmailStats($id))
+        {
+            $this->Session->setFlash(__('The email will be resent shortly...'));
+        }
+        else
+        {
+            $this->Session->setFlash(__('The email will not be resent shortly. Please contact tech support.'));
+        }
+
+        $this->redirect(array('action' => 'index'));
     }
 
     /**
