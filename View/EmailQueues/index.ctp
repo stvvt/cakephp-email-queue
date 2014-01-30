@@ -10,6 +10,15 @@
         <?php echo $this->element('paging', array('format'=>'Page %page% of %pages%, total %count% record(s)')); ?>
     </div>
 
+    <?php echo $this->Form->create(null,
+        array(
+           'inputDefaults' => array(
+               'required'=>false,
+            ),
+           'url' => array('action'=>'filter'),
+        )
+    ); ?>
+
     <table class="table table-striped text-sm">
         <colgroup>
             <col width="1%" />
@@ -28,6 +37,63 @@
             </th>
             <th><?php echo $this->Paginator->sort('created'); ?></th>
             <th><?php echo $this->Paginator->sort('send_at'); ?></th>
+            <th></th>
+        </tr>
+
+        <tr>
+            <th>
+                <?php
+                    $options = array(EmailQueue::EMAIL_STATUS_SENT, EmailQueue::EMAIL_STATUS_SENDING, EmailQueue::EMAIL_STATUS_ERROR, EmailQueue::EMAIL_STATUS_PENDING);
+                    $options = array_combine($options, $options);
+                    echo $this->Form->input('EmailQueue.status',
+                    array(
+                        'options' => $options,
+                        'empty' => __('Please Select ...'),
+                        'div'=>false,
+                    )
+                ); ?>
+            </th>
+
+            <th>
+             <?php echo $this->Form->input('EmailQueue.to',
+                array('required' => false,
+                'div'=>false,
+                )); ?>
+            </th>
+
+            <th>
+                <?php
+                    $options = array(
+                        EmailQueue::EMAIL_TEMPLATE_AUCTION_BIDDER_AUCTION_FINISHED,
+                        EmailQueue::EMAIL_TEMPLATE_AUCTION_LOSER_WINNER_SELLECTED,
+                        EmailQueue::EMAIL_TEMPLATE_AUCTION_OWNER_AUCTION_FINISHED,
+                        EmailQueue::EMAIL_TEMPLATE_AUCTION_RELEVANT_ACTIVATED,
+                        EmailQueue::EMAIL_TEMPLATE_AUCTION_WINNER_WINNER_SELLECTED,
+                        EmailQueue::EMAIL_TEMPLATE_CRM_APPROVED,
+                        EmailQueue::EMAIL_TEMPLATE_CRM_COMPANY_CONFIRMED,
+                        EmailQueue::EMAIL_TEMPLATE_CRM_FORGOT_PASSWORD,
+                        EmailQueue::EMAIL_TEMPLATE_CRM_JOIN_REQUEST,
+                        EmailQueue::EMAIL_TEMPLATE_CLIENT_WELLCOME,
+                        EmailQueue::EMAIL_TEMPLATE_CLIENT_INVITATION,
+                    );
+                    $options = array_combine($options, ($options));
+                    echo $this->Form->input('EmailQueue.template',
+                    array(
+                        'options' => $options,
+                        'empty' => __('Please Select ...'),
+                        'div'=>false,
+                    )
+                ); ?>
+            </th>
+
+            <th colspan="">
+                <?php echo $this->Form->button($this->Html->icon('filter') . __('Filter'),
+                    array('class'=>'btn btn-primary', 'type'=>'submit')) ?>
+             </th>
+
+             <th colspan="2">
+                <?php echo $this->Html->link('RESET', array('action' => 'index')); ?>
+            </th>
         </tr>
         </thead>
 
@@ -35,7 +101,7 @@
         <tr>
             <td nowrap="nowrap">
                 <?php echo $this->Html->link($r['EmailQueue']['id'],array('action'=>'view', $r['EmailQueue']['id']) ); ?>
-                <?php echo $this->element('email_status', compact('r')); ?>
+                <?php echo $this->element('email_status', compact('r'));?>
             </td>
 
             <td>
@@ -65,10 +131,23 @@
                     ?>
                 <?php endif; ?>
             </td>
+
+            <?php
+                $a = $this->element('email_status', compact('r'));
+                if ( strpos($a, 'error') )
+                {
+                    echo '<td>';
+                        echo $this->Html->link('resend', array('action'=>'resetEmailStats', $r['EmailQueue']['id']));
+                    echo '</td';
+                }
+            ?>
+
         </tr>
     <?php endforeach; ?>
 
     </table>
+
+    <?php echo $this->Form->end(false /* do not submit hidden referrer field */);?>
 
     <?php echo $this->element('pagination'); ?>
     <div class="pull-right">
