@@ -53,7 +53,10 @@ class EmailQueuesController extends EmailQueueAppController
         }
 
         if (!empty($filter['EmailQueue']['to'])) {
-            $conditions['EmailQueue.to LIKE'] = '%'.$filter['EmailQueue']['to'].'%';
+            $conditions[]['OR'] = array(
+                'EmailQueue.to LIKE' => '%'.$filter['EmailQueue']['to'].'%',
+                'EmailQueue.to_name LIKE' => '%'.$filter['EmailQueue']['to'].'%',
+            );
         }
 
         if (!empty($filter['EmailQueue']['template'])) {
