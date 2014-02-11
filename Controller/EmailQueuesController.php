@@ -14,6 +14,7 @@ class EmailQueuesController extends EmailQueueAppController
     );
 
     public $components = array(
+        'Paginator',
          'Filter' => array(
             'fieldMap' => array(
                 'st'=>'EmailQueue.status',
@@ -65,8 +66,14 @@ class EmailQueuesController extends EmailQueueAppController
 
         $this->request->data = $filter;
 
-        $this->EmailQueue->recursive = -1;
-        $this->set('emailQueues', $this->paginate($conditions));
+        $this->Paginator->settings = array(
+            'conditions' => array(
+            ) + (array)$conditions,
+            'order' => 'EmailQueue.Created DESC',
+            'recursive' => -1,
+        );
+
+        $this->set('emailQueues', $this->Paginator->paginate());
     }
 
     public function filter()
