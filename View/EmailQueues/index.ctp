@@ -2,13 +2,16 @@
 
 
 <div class="emailQueues index">
-    <h2><?php echo __('Email Queue'); ?></h2>
+    <h2>
+        <?php echo __('Email Queue'); ?>
+        <small>
+            <?php echo $this->element('paging', array('format'=>'Page %page% of %pages%, total %count% record(s)')); ?>
+        </small>
+    </h2>
 
     <?php $this->Paginator->options(array('url'=>$this->request->params['named']+$this->request->params['pass']))?>
     <?php echo $this->element('pagination'); ?>
-    <div class="pull-right">
-        <?php echo $this->element('paging', array('format'=>'Page %page% of %pages%, total %count% record(s)')); ?>
-    </div>
+
 
     <?php echo $this->Form->create(null,
         array(
@@ -19,7 +22,7 @@
         )
     ); ?>
 
-    <table class="table table-striped text-sm">
+    <table class="table table-bordered table-striped table-condensed table-hover text-sm">
         <colgroup>
             <col width="1%" />
             <col />
@@ -29,42 +32,39 @@
         </colgroup>
         <thead>
         <tr>
-            <th><?php echo $this->Paginator->sort('id'); ?></th>
-            <th><?php echo $this->Paginator->sort('to', __('To')); ?></th>
-            <th>
-                <?php echo $this->Paginator->sort('subject', __('Subject')); ?><br/>
-                (<?php echo $this->Paginator->sort('template'); ?>, <?php echo $this->Paginator->sort('format'); ?>)
-            </th>
-            <th><?php echo $this->Paginator->sort('created'); ?></th>
-            <th><?php echo $this->Paginator->sort('send_at'); ?></th>
-            <th></th>
-        </tr>
-
-        <tr>
-            <th>
+            <th valign="top">
                 <?php
-                    $options = array(EmailQueue::EMAIL_STATUS_SENT, EmailQueue::EMAIL_STATUS_SENDING, EmailQueue::EMAIL_STATUS_ERROR, EmailQueue::EMAIL_STATUS_PENDING);
-                    $options = array_combine($options, $options);
-                    echo $this->Form->input('EmailQueue.status',
-                    array(
-                        'options' => $options,
-                        'empty' => __('Please Select ...'),
-                        'div'=>false,
-                    )
-                ); ?>
+                    echo $this->Form->input('EmailQueue.subject',
+                        array(
+                            'label' => $this->Paginator->sort('subject', __('Subject')),
+                            'required' => false,
+                        )
+                    );
+                ?>
+                <div class="form-group">
+                    <?php echo $this->Form->button($this->Html->icon('filter') . __('Filter'),
+                        array('class'=>'btn btn-primary', 'type'=>'submit')) ?>
+                    <?php echo $this->Html->link(__('Reset Filter'), array('action' => 'index')); ?>
+                </div>
             </th>
 
-            <th>
-             <?php echo $this->Form->input('EmailQueue.to',
-                array('required' => false,
-                'div'=>false,
-                )); ?>
+            <th style="vertical-align: top;">
+                <?php
+                    echo $this->Form->input('EmailQueue.to',
+                        array(
+                            'label' => $this->Paginator->sort('to', __('To')),
+                            'required' => false,
+                            'div'=>false,
+                        )
+                    );
+                ?>
             </th>
 
-            <th>
+            <th style="vertical-align: top;">
                 <?php
                     echo $this->Form->input('EmailQueue.template',
                     array(
+                        'label' => $this->Paginator->sort('template') . ', ' . $this->Paginator->sort('format'),
                         'options' => $templateOptions,
                         'empty' => __('Please Select ...'),
                         'div'=>false,
@@ -72,13 +72,24 @@
                 ); ?>
             </th>
 
-            <th colspan="">
-                <?php echo $this->Form->button($this->Html->icon('filter') . __('Filter'),
-                    array('class'=>'btn btn-primary', 'type'=>'submit')) ?>
-             </th>
+            <th style="vertical-align: top;">
+                <?php echo $this->Paginator->sort('created'); ?>
+            </th>
 
-             <th colspan="2">
-                <?php echo $this->Html->link('RESET', array('action' => 'index')); ?>
+            <th style="vertical-align: top;">
+                <?php echo $this->Paginator->sort('send_at'); ?>
+            </th>
+            <th style="vertical-align: top;">
+            <?php
+                $options = array(EmailQueue::EMAIL_STATUS_SENT, EmailQueue::EMAIL_STATUS_SENDING, EmailQueue::EMAIL_STATUS_ERROR, EmailQueue::EMAIL_STATUS_PENDING);
+                echo $this->Form->input('EmailQueue.status',
+                    array(
+                        'label' => __('Status'),
+                        'options' => array_combine($options, $options),
+                        'empty' => __('Please Select ...'),
+                        'div'=>false,
+                    )
+                ); ?>
             </th>
         </tr>
         </thead>
@@ -86,20 +97,21 @@
         <?php foreach ($emailQueues as $r): ?>
         <tr>
             <td nowrap="nowrap">
-                <?php echo $this->Html->link($r['EmailQueue']['id'],array('action'=>'view', $r['EmailQueue']['id']) ); ?>
-                <?php echo $this->element('email_status', compact('r'));?>
+                <?php echo $this->Html->link(h($r['EmailQueue']['subject']),array('action'=>'view', $r['EmailQueue']['id']) ); ?>
+                <?php if (!empty($r['EmailQueue']['template_vars']['language'])) : ?>
+                <span class="text-muted label label-default text-upper"><?php echo $r['EmailQueue']['template_vars']['language'] ?></span>
+                <?php endif; ?>
             </td>
 
             <td>
                 <?php if ($r['EmailQueue']['to_name'] != $r['EmailQueue']['to']) : ?>
                     <?php echo h($r['EmailQueue']['to_name']) .'<br>'; ?>
                 <?php endif; ?>
-                <?php echo h($r['EmailQueue']['to']); ?>
+                <span class="text-muted"><?php echo h($r['EmailQueue']['to']); ?></span>
             </td>
 
             <td>
-                <?php echo h($r['EmailQueue']['subject']); ?><br/>
-                (<?php echo h($r['EmailQueue']['template']); ?>, <?php echo h($r['EmailQueue']['format']); ?>)
+                <?php echo h($r['EmailQueue']['template']); ?>, <?php echo h($r['EmailQueue']['format']); ?>
             </td>
             <td nowrap="nowrap">
                 <?php
@@ -118,15 +130,17 @@
                 <?php endif; ?>
             </td>
 
+            <td>
             <?php
-                $a = $this->element('email_status', compact('r'));
-                if ( strpos($a, 'error') )
-                {
-                    echo '<td>';
-                        echo $this->Html->link('resend', array('action'=>'resetEmailStats', $r['EmailQueue']['id']));
-                    echo '</td';
+                echo $a = $this->element('email_status', compact('r'));
+            ?>
+            &nbsp;
+            <?php
+                if (strpos($a, 'error') !== false) {
+                    echo $this->Html->link('resend', array('action'=>'resetEmailStats', $r['EmailQueue']['id']), array('class'=>'btn btn-warning btn-xs'));
                 }
             ?>
+            </td>
 
         </tr>
     <?php endforeach; ?>

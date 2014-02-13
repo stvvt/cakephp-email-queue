@@ -17,6 +17,7 @@ class EmailQueuesController extends EmailQueueAppController
         'Paginator',
          'Filter' => array(
             'fieldMap' => array(
+                's'=>'EmailQueue.subject',
                 'st'=>'EmailQueue.status',
                 'to'=>'EmailQueue.to',
                 'te'=>'EmailQueue.template',
@@ -33,23 +34,31 @@ class EmailQueuesController extends EmailQueueAppController
     {
         $filter = $this->Filter->get();
 
-        $conditions = array();
+        $conditions = $this->postConditions($filter,
+            array(
+               'subject'=>'LIKE',
+               'template'=>'=',
+            ),
+            'AND',
+            true
+        );
 
-        if (!empty($filter['EmailQueue']['status']) ) {
-
-            if($filter['EmailQueue']['status'] == EmailQueue::EMAIL_STATUS_SENT){
-                $conditions['EmailQueue.sent']=true;
-            }
-            elseif ($filter['EmailQueue']['status'] == EmailQueue::EMAIL_STATUS_SENDING) {
-                $conditions['EmailQueue.locked']=true;
-            }
-            elseif($filter['EmailQueue']['status'] == EmailQueue::EMAIL_STATUS_ERROR) {
-                $conditions['EmailQueue.send_tries >=']='4';
-            }
-            elseif ($filter['EmailQueue']['status'] == EmailQueue::EMAIL_STATUS_PENDING){
-                $conditions['EmailQueue.sent'] = false;
-                $conditions['EmailQueue.locked'] = false;
-                $conditions['EmailQueue.send_tries <'] = '4';
+        if (!empty($filter['EmailQueue']['status'])) {
+            switch ($filter['EmailQueue']['status']) {
+                case EmailQueue::EMAIL_STATUS_SENT:
+                    $conditions['EmailQueue.sent'] = true;
+                    break;
+                case EmailQueue::EMAIL_STATUS_SENDING:
+                    $conditions['EmailQueue.locked'] = true;
+                    break;
+                case EmailQueue::EMAIL_STATUS_ERROR:
+                    $conditions['EmailQueue.send_tries >='] = 4;
+                    break;
+                case EmailQueue::EMAIL_STATUS_PENDING:
+                    $conditions['EmailQueue.sent'] = false;
+                    $conditions['EmailQueue.locked'] = false;
+                    $conditions['EmailQueue.send_tries <'] = 4;
+                    break;
             }
         }
 
@@ -58,10 +67,6 @@ class EmailQueuesController extends EmailQueueAppController
                 'EmailQueue.to LIKE' => '%'.$filter['EmailQueue']['to'].'%',
                 'EmailQueue.to_name LIKE' => '%'.$filter['EmailQueue']['to'].'%',
             );
-        }
-
-        if (!empty($filter['EmailQueue']['template'])) {
-            $conditions['EmailQueue.template'] = $filter['EmailQueue']['template'];
         }
 
         $this->request->data = $filter;
