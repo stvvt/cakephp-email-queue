@@ -111,7 +111,7 @@
             </td>
 
             <td>
-                <?php echo h($r['EmailQueue']['template']); ?>, <?php echo h($r['EmailQueue']['format']); ?>
+                <?php echo h($r['EmailQueue']['template']); ?> <span class="label label-default"><?php echo h($r['EmailQueue']['format']); ?></span>
             </td>
             <td nowrap="nowrap">
                 <?php
