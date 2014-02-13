@@ -65,8 +65,22 @@ class EmailQueuesController extends EmailQueueAppController
 
         $this->request->data = $filter;
 
+<<<<<<< Updated upstream
         $this->EmailQueue->recursive = -1;
         $this->set('emailQueues', $this->paginate($conditions));
+=======
+        $this->Paginator->settings = array(
+            'conditions' => array(
+            ) + (array)$conditions,
+            'order' => array('EmailQueue.created'=>'desc'),
+            'recursive' => -1,
+        );
+
+        $this->set('emailQueues', $this->Paginator->paginate());
+
+        $templateOptions = $this->EmailQueue->find('all', array('fields'=>array('fields'=>'DISTINCT template')));
+        $this->set('templateOptions', Hash::combine($templateOptions, '{n}.EmailQueue.template', '{n}.EmailQueue.template'));
+>>>>>>> Stashed changes
     }
 
     public function filter()

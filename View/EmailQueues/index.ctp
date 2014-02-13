@@ -63,23 +63,9 @@
 
             <th>
                 <?php
-                    $options = array(
-                        EmailQueue::EMAIL_TEMPLATE_AUCTION_BIDDER_AUCTION_FINISHED,
-                        EmailQueue::EMAIL_TEMPLATE_AUCTION_LOSER_WINNER_SELLECTED,
-                        EmailQueue::EMAIL_TEMPLATE_AUCTION_OWNER_AUCTION_FINISHED,
-                        EmailQueue::EMAIL_TEMPLATE_AUCTION_RELEVANT_ACTIVATED,
-                        EmailQueue::EMAIL_TEMPLATE_AUCTION_WINNER_WINNER_SELLECTED,
-                        EmailQueue::EMAIL_TEMPLATE_CRM_APPROVED,
-                        EmailQueue::EMAIL_TEMPLATE_CRM_COMPANY_CONFIRMED,
-                        EmailQueue::EMAIL_TEMPLATE_CRM_FORGOT_PASSWORD,
-                        EmailQueue::EMAIL_TEMPLATE_CRM_JOIN_REQUEST,
-                        EmailQueue::EMAIL_TEMPLATE_CLIENT_WELLCOME,
-                        EmailQueue::EMAIL_TEMPLATE_CLIENT_INVITATION,
-                    );
-                    $options = array_combine($options, ($options));
                     echo $this->Form->input('EmailQueue.template',
                     array(
-                        'options' => $options,
+                        'options' => $templateOptions,
                         'empty' => __('Please Select ...'),
                         'div'=>false,
                     )
