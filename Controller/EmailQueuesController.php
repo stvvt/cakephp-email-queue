@@ -14,6 +14,7 @@ class EmailQueuesController extends EmailQueueAppController
     );
 
     public $components = array(
+        'Paginator',
          'Filter' => array(
             'fieldMap' => array(
                 'st'=>'EmailQueue.status',
@@ -65,10 +66,6 @@ class EmailQueuesController extends EmailQueueAppController
 
         $this->request->data = $filter;
 
-<<<<<<< Updated upstream
-        $this->EmailQueue->recursive = -1;
-        $this->set('emailQueues', $this->paginate($conditions));
-=======
         $this->Paginator->settings = array(
             'conditions' => array(
             ) + (array)$conditions,
@@ -80,7 +77,6 @@ class EmailQueuesController extends EmailQueueAppController
 
         $templateOptions = $this->EmailQueue->find('all', array('fields'=>array('fields'=>'DISTINCT template')));
         $this->set('templateOptions', Hash::combine($templateOptions, '{n}.EmailQueue.template', '{n}.EmailQueue.template'));
->>>>>>> Stashed changes
     }
 
     public function filter()
