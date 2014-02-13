@@ -67,8 +67,7 @@ class EmailQueuesController extends EmailQueueAppController
         $this->request->data = $filter;
 
         $this->Paginator->settings = array(
-            'conditions' => array(
-            ) + (array)$conditions,
+            'conditions' => $conditions,
             'order' => array('EmailQueue.created'=>'desc'),
             'recursive' => -1,
         );
