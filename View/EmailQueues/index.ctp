@@ -9,7 +9,6 @@
         </small>
     </h2>
 
-    <?php $this->Paginator->options(array('url'=>$this->request->params['named']+$this->request->params['pass']))?>
     <?php echo $this->element('pagination'); ?>
 
 
