@@ -5,107 +5,118 @@ App::uses('ClassRegistry', 'Utility');
 
 class SenderShell extends AppShell {
 
-	public function getOptionParser() {
-		$parser = parent::getOptionParser();
-		$parser
-			->description('Sends queued emails in a batch')
-			->addOption('limit', array(
-				'short' => 'l',
-				'help' => 'How many emails should be sent in this batch?',
-				'default' => 50
-			))
-			->addOption('template', array(
-				'short' => 't',
-				'help' => 'Name of the template to be used to render email',
-				'default' => 'default'
-			))
-			->addOption('layout', array(
-				'short' => 'w',
-				'help' => 'Name of the layout to be used to wrap template',
-				'default' => 'default'
-			))
-			->addOption('config', array(
-				'short' => 'c',
-				'help' => 'Name of email settings to use as defined in email.php',
-				'default' => 'default'
-			))
-			->addSubCommand('clearLocks', array(
-				'help' => 'Clears all locked emails in the queue, useful for recovering from crashes'
-			));
-		return $parser;
-	}
+    public function getOptionParser() {
+        $parser = parent::getOptionParser();
+        $parser
+            ->description('Sends queued emails in a batch')
+            ->addOption('limit', array(
+                'short' => 'l',
+                'help' => 'How many emails should be sent in this batch?',
+                'default' => 50
+            ))
+            ->addOption('template', array(
+                'short' => 't',
+                'help' => 'Name of the template to be used to render email',
+                'default' => 'default'
+            ))
+            ->addOption('layout', array(
+                'short' => 'w',
+                'help' => 'Name of the layout to be used to wrap template',
+                'default' => 'default'
+            ))
+            ->addOption('config', array(
+                'short' => 'c',
+                'help' => 'Name of email settings to use as defined in email.php',
+                'default' => 'default'
+            ))
+            ->addSubCommand('clearLocks', array(
+                'help' => 'Clears all locked emails in the queue, useful for recovering from crashes'
+            ));
+        return $parser;
+    }
 
 /**
  * Sends queued emails
  *
  * @access public
  */
-	public function main()
-	{
-	    Configure::write('App.baseUrl', '/');
-	    
-		/* @var $emailQueue EmailQueue */
-		$emailQueue = ClassRegistry::init('EmailQueue.EmailQueue');
-		
-		Router::setRequestInfo(new CakeRequest(Configure::read('App.baseUrl'), false));
+    public function main()
+    {
+        Configure::write('App.baseUrl', '/');
 
-		$emails = $emailQueue->getBatch($this->params['limit']);
-		foreach ($emails as $e) {
-			$configName = $e['EmailQueue']['config'] === 'default' ? $this->params['config'] : $e['EmailQueue']['config'];
-			$template = $e['EmailQueue']['template'] === 'default' ? $this->params['template'] : $e['EmailQueue']['template'];
-			$layout = $e['EmailQueue']['layout'] === 'default' ? $this->params['layout'] : $e['EmailQueue']['layout'];
+        /* @var $emailQueue EmailQueue */
+        $emailQueue = ClassRegistry::init('EmailQueue.EmailQueue');
 
-			try {
-				$email = $this->_newEmail($configName);
-				
-				if (!empty($e['EmailQueue']['from_email']) && !empty($e['EmailQueue']['from_name'])) {
-					$email->from($e['EmailQueue']['from_email'], $e['EmailQueue']['from_name']);
-				}
-				
-				if (isset($e['EmailQueue']['template_vars']['language'])) {
-					Configure::write('Config.language', $e['EmailQueue']['template_vars']['language']);
-					Router::getRequest()->params['language'] = $e['EmailQueue']['template_vars']['language'];
-				}
-				
-				$sent = $email
-					->to($e['EmailQueue']['to'], $e['EmailQueue']['to_name'])
-					->subject($e['EmailQueue']['subject'])
-					->template($template, $layout)
-					->emailFormat($e['EmailQueue']['format'])
-					->viewVars($e['EmailQueue']['template_vars'])
-					->send();
-			} catch (SocketException $exception) {
-				$this->err($exception->getMessage());
-				$sent = false;
-			}
+        Router::setRequestInfo(new CakeRequest(Configure::read('App.baseUrl'), false));
 
-			if ($sent) {
-				$emailQueue->success($e['EmailQueue']['id']);
-				$this->out('<success>Email ' . $e['EmailQueue']['id'] . ' was sent</success>');
-			} else {
-				$emailQueue->fail($e['EmailQueue']['id']);
-				$this->out('<error>Email ' . $e['EmailQueue']['id'] . ' was not sent</error>');
-			}
+        $emails = $emailQueue->getBatch($this->params['limit']);
+        foreach ($emails as $e) {
+            $configName = $e['EmailQueue']['config'] === 'default' ? $this->params['config'] : $e['EmailQueue']['config'];
+            $template = $e['EmailQueue']['template'] === 'default' ? $this->params['template'] : $e['EmailQueue']['template'];
+            $layout = $e['EmailQueue']['layout'] === 'default' ? $this->params['layout'] : $e['EmailQueue']['layout'];
 
-		}
-		$emailQueue->releaseLocks(Set::extract('{n}.EmailQueue.id', $emails));
-	}
+            try {
+                $email = $this->_newEmail($configName);
+
+                $configFrom = array();
+                list($configFrom['email'], $configFrom['name']) = @each($email->from());
+
+                $from = Hash::merge(
+                    Hash::filter($configFrom),
+                    Hash::filter(array(
+                       'email' => $e['EmailQueue']['from_email'],
+                       'name' => $e['EmailQueue']['from_name'],
+                    ))
+                );
+
+                if (!empty($from)) {
+                    $email->from($from['email'], $from['name']);
+                }
+
+                if (isset($e['EmailQueue']['template_vars']['language'])) {
+                    Configure::write('Config.language', $e['EmailQueue']['template_vars']['language']);
+                    Router::getRequest()->params['language'] = $e['EmailQueue']['template_vars']['language'];
+                }
+
+                $sent = $email
+                    ->to($e['EmailQueue']['to'], $e['EmailQueue']['to_name'])
+                    ->subject($e['EmailQueue']['subject'])
+                    ->template($template, $layout)
+                    ->emailFormat($e['EmailQueue']['format'])
+                    ->viewVars($e['EmailQueue']['template_vars'])
+                    ->send();
+            } catch (SocketException $exception) {
+                $this->err($exception->getMessage());
+                $sent = false;
+            }
+
+            if ($sent) {
+                $emailQueue->success($e['EmailQueue']['id']);
+                $this->out('<success>Email ' . $e['EmailQueue']['id'] . ' was sent</success>');
+            } else {
+                $emailQueue->fail($e['EmailQueue']['id']);
+                $this->out('<error>Email ' . $e['EmailQueue']['id'] . ' was not sent</error>');
+            }
+
+        }
+        $emailQueue->releaseLocks(Set::extract('{n}.EmailQueue.id', $emails));
+    }
 
 /**
  * Clears all locked emails in the queue, useful for recovering from crashes
  *
  * @return void
  **/
-	public function clearLocks() {
-		 ClassRegistry::init('EmailQueue.EmailQueue')->clearLocks();
-	}
+    public function clearLocks() {
+         ClassRegistry::init('EmailQueue.EmailQueue')->clearLocks();
+    }
 
 /**
  * Returns a new instance of CakeEmail
  *
  * @return CakeEmail
  **/
-	protected function _newEmail($config) {
-		return new CakeEmail($config);
-	}
+    protected function _newEmail($config) {
+        return new CakeEmail($config);
+    }
 }
