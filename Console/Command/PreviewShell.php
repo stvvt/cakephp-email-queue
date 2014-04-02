@@ -49,6 +49,20 @@ class PreviewShell extends AppShell {
             ->emailFormat($e['EmailQueue']['format'])
             ->viewVars($e['EmailQueue']['template_vars']);
 
+        list($configFrom['email'], $configFrom['name']) = @each($email->from());
+
+        $from = Hash::merge(
+            Hash::filter($configFrom),
+            Hash::filter(array(
+                'email' => $e['EmailQueue']['from_email'],
+                'name' => $e['EmailQueue']['from_name'],
+            ))
+        );
+
+        if (!empty($from)) {
+            $email->from($from['email'], $from['name']);
+        }
+
         if (isset($e['EmailQueue']['template_vars']['language'])) {
             Configure::write('Config.language', $e['EmailQueue']['template_vars']['language']);
             Router::getRequest()->params['language'] = $e['EmailQueue']['template_vars']['language'];

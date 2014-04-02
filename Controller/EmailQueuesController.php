@@ -125,7 +125,18 @@ class EmailQueuesController extends EmailQueueAppController
 
         $email = new CakeEmail($configName);
 
+        list($configFrom['email'], $configFrom['name']) = @each($email->from());
+
+        $from = Hash::merge(
+            Hash::filter($configFrom),
+            Hash::filter(array(
+               'email' => $data['EmailQueue']['from_email'],
+               'name' => $data['EmailQueue']['from_name'],
+            ))
+        );
+
         $email->transport('Debug')
+            ->from($from['email'], $from['name'])
             ->to($data['EmailQueue']['to'])
             ->subject($data['EmailQueue']['subject'])
             ->template($template, $layout)
