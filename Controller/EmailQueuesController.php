@@ -14,7 +14,6 @@ class EmailQueuesController extends EmailQueueAppController
     );
 
     public $components = array(
-        'Paginator',
          'Filter' => array(
             'fieldMap' => array(
                 's'=>'EmailQueue.subject',
