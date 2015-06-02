@@ -142,14 +142,17 @@ class EmailQueuesController extends EmailQueueAppController
             ->emailFormat($data['EmailQueue']['format'])
             ->viewVars($data['EmailQueue']['template_vars']);
 
+        $language = Configure::read('Config.language');
+        
         if (isset($data['EmailQueue']['template_vars']['language'])) {
             Configure::write('Config.language', $data['EmailQueue']['template_vars']['language']);
-            Router::getRequest()->params['language'] = $data['EmailQueue']['template_vars']['language'];
         }
 
         $email_text = $email->send();
         $this->set(compact('email_text'));
         $this->set(compact('data'));
+        
+        Configure::write('Config.language', $language);
     }
 
 /**
